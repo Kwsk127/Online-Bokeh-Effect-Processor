@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bokeh Effect Image Processor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align content to the top */
+            flex-direction: column;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 15px 30px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 20px;
+        }
+
+        .upload-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .upload-area {
+            border: 3px dashed #4facfe;
+            border-radius: 15px;
+            padding: 40px 20px;
+            background: #f8fbff;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area:hover {
+            border-color: #00f2fe;
+            background: #f0f9ff;
+            transform: translateY(-2px);
+        }
+
+        .upload-area.dragover {
+            border-color: #00f2fe;
+            background: #e6f7ff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: #4facfe;
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .upload-subtext {
+            color: #999;
+            font-size: 0.9rem;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .images-container {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .images-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .image-box {
+            background: white;
+            border-radius: 15px;
+            padding: 5px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .image-box:hover {
+            transform: translateY(-5px);
+        }
+
+        .image-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .image-wrapper {
+            width: 100%;
+            height: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-wrapper img {
+            max-width: 100%;
+            height: auto;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+        }
+
+        .image-wrapper:hover img {
+            transform: scale(1.05);
+        }
+
+        .controls-section {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .controls-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .slider-container {
+            margin-bottom: 10px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .slider-label span {
+            font-weight: 500;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        .slider-value {
+            background: #4facfe;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            appearance: none;
+            transition: background 0.3s ease;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(79, 172, 254, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 6px 15px rgba(79, 172, 254, 0.5);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 4px 10px rgba(79, 172, 254, 0.3);
+        }
+
+        .apply-btn,
+        .download-btn,
+        .upload-another-btn {
+            width: 30%;
+            padding: 8px;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            height: 40px;
+        }
+
+        .apply-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #ff7b00 0%, #ff5100 100%);
+            display: none;
+        }
+
+        .upload-another-btn {
+            background: linear-gradient(135deg, #00ff7f 0%, #32cd32 100%);
+        }
+
+        .apply-btn:hover,
+        .download-btn:hover,
+        .upload-another-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 79, 0, 0.4);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4facfe;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #c33;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .images-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .upload-area {
+                padding: 40px 15px;
+            }
+
+            .image-wrapper {
+                height: 200px;
+            }
+
+            .slider-container {
+                width: 80%;
+                margin: 0 auto;
+            }
+
+            .btn {
+                width: 100%;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Bokeh Effect Processor</h1>
+        </div>
+
+        <div class="main-content">
+            <!-- Upload Section -->
+            <div class="upload-section" id="uploadSection">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📸</div>
+                    <div class="upload-text">Click to upload or drag and drop</div>
+                    <div class="upload-subtext">Supports JPG, PNG, GIF (Max 10MB)</div>
+                    <input type="file" id="fileInput" accept="image/*">
+                </div>
+                <button class="btn" id="uploadBtn" style="margin-top: 20px;">Upload Image</button>
+            </div>
+
+            <!-- Loading -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Processing your image...</p>
+            </div>
+
+            <!-- Error Messages -->
+            <div class="error-message" id="errorMessage"></div>
+
+            <!-- Images Display -->
+            <div class="images-container" id="imagesContainer">
+                <div class="images-grid">
+                    <div class="image-box">
+                        <div class="image-title">Original Image</div>
+                        <div class="image-wrapper">
+                            <img id="originalImage" src="" alt="Original">
+                        </div>
+                    </div>
+                    <div class="image-box">
+                        <div class="image-title">Processed Image</div>
+                        <div class="image-wrapper">
+                            <img id="processedImage" src="" alt="Processed" style="display:none;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="controls-section">
+                    <div class="controls-title">Blur Strength Control</div>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Blur Intensity</span>
+                            <span class="slider-value" id="sliderValue">15</span>
+                        </div>
+                        <input type="range" min="1" max="31" value="15" step="2" class="slider" id="blurSlider">
+                    </div>
+                    <button class="btn apply-btn" id="applyBtn">Apply Effect</button>
+                    <button class="btn download-btn" id="downloadBtn">Download</button>
+                    <button class="btn upload-another-btn" id="uploadAnotherBtn">Upload Another</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentFilename = null;
+        let isProcessing = false;
+
+        // DOM elements
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const loading = document.getElementById('loading');
+        const errorMessage = document.getElementById('errorMessage');
+        const imagesContainer = document.getElementById('imagesContainer');
+        const originalImage = document.getElementById('originalImage');
+        const processedImage = document.getElementById('processedImage');
+        const blurSlider = document.getElementById('blurSlider');
+        const sliderValue = document.getElementById('sliderValue');
+        const applyBtn = document.getElementById('applyBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const uploadAnotherBtn = document.getElementById('uploadAnotherBtn');
+
+        // Upload area events
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', handleDragOver);
+        uploadArea.addEventListener('dragleave', handleDragLeave);
+        uploadArea.addEventListener('drop', handleDrop);
+
+        // File input change
+        fileInput.addEventListener('change', handleFileSelect);
+
+        // Slider events
+        blurSlider.addEventListener('input', updateSliderValue);
+        applyBtn.addEventListener('click', applyEffect);
+
+        // Reset for new upload
+        uploadAnotherBtn.addEventListener('click', resetImage);
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFileSelect();
+            }
+        }
+
+        function handleFileSelect() {
+            const file = fileInput.files[0];
+            if (file) {
+                uploadImage(file);
+            }
+        }
+
+        function updateSliderValue() {
+            sliderValue.textContent = blurSlider.value;
+        }
+
+        function showLoading() {
+            loading.style.display = 'block';
+            errorMessage.style.display = 'none';
+        }
+
+        function hideLoading() {
+            loading.style.display = 'none';
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+
+        function hideError() {
+            errorMessage.style.display = 'none';
+        }
+
+        async function uploadImage(file) {
+            if (isProcessing) return;
+            
+            isProcessing = true;
+            showLoading();
+            
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/api/image/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    currentFilename = result.filename;
+                    originalImage.src = result.original_image;
+                    imagesContainer.style.display = 'block';
+                    document.getElementById('uploadSection').style.display = 'none'; // Hide upload section
+                } else {
+                    showError(result.error || 'Upload failed');
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            } finally {
+                hideLoading();
+                isProcessing = false;
+            }
+        }
+
+        async function applyEffect() {
+            if (isProcessing || !currentFilename) return;
+            
+            isProcessing = true;
+            applyBtn.disabled = true;
+            applyBtn.textContent = 'Applying...';
+
+            try {
+                const response = await fetch('/api/image/process', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        blur_strength: parseInt(blurSlider.value),
+                        filename: currentFilename
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    processedImage.src = result.processed_image + '?t=' + Date.now(); // Add timestamp to force image reload
+                    processedImage.style.display = 'block'; // Show processed image
+                    document.getElementById('downloadBtn').style.display = 'block'; // Show the Download button
+                } else {
+                    showError(result.error || 'Processing failed');
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            } finally {
+                applyBtn.disabled = false;
+                applyBtn.textContent = 'Apply Effect';
+                isProcessing = false;
+            }
+        }
+
+        function resetImage() {
+            // Reset the form and image
+            fileInput.value = '';
+            originalImage.src = '';
+            processedImage.src = '';
+            processedImage.style.display = 'none'; // Hide processed image
+            imagesContainer.style.display = 'none';
+            document.getElementById('uploadSection').style.display = 'block'; // Show upload section again
+            document.getElementById('downloadBtn').style.display = 'none'; // Hide download button
+        }
+
+        document.getElementById('downloadBtn').addEventListener('click', function() {
+            const processedImageSrc = document.getElementById('processedImage').src;
+            const link = document.createElement('a');
+            link.href = processedImageSrc;
+            link.download = 'processed_image.jpg'; // Or any file extension you prefer
+            link.click();
+        });
+    </script>
+</body>
+</html>
