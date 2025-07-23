@@ -48,20 +48,6 @@ This project is a web-based image processor that applies a Gaussian blur (Bokeh 
    ```bash
    python app.py
 
-### File Structure
-
-
-```bash
-.
-├── app.py                # Flask backend code 
-├── static/
-│   ├── uploads/          # Folder to store uploaded images
-├── templates/
-│   └── index.html        # Frontend HTML template
-└── requirements.txt      # Python dependencies
-└── deeplabv3.tflite      # TensorFlow Lite model
-
-
 ###Usage
 
 1. Open the app in your browser.
@@ -75,7 +61,18 @@ This project is a web-based image processor that applies a Gaussian blur (Bokeh 
 5. Click on the "Apply Effect" button to process the image.
 
 6. Download the processed image by clicking the "Download" button.
+   
+### File Structure
 
 
+```bash
+   .
+   ├── app.py                # Flask backend code 
+   ├── static/
+   │   ├── uploads/          # Folder to store uploaded images
+   ├── templates/
+   │   └── index.html        # Frontend HTML template
+   └── requirements.txt      # Python dependencies
+   └── deeplabv3.tflite      # TensorFlow Lite model
 
    
