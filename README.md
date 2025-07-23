@@ -48,8 +48,8 @@ This project is a web-based image processor that applies a Gaussian blur (Bokeh 
    ```bash
    python app.py
 
-###Usage
-
+### Usage
+ 
 1. Open the app in your browser.
 
 2. Upload an image by clicking the upload area or dragging and dropping a file.
